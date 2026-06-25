@@ -1,0 +1,35 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "sha256": "06fee057535c04b70322a5726aa001e355ccfd7906045fdb2a97eb2fc6d1334f",
+    "size_bytes": 36722,
+    "filename": "headings.docx"
+  },
+  "metadata": {
+    "title": "Headings DOCX",
+    "author": "Knovas Synthesizer",
+    "language": null,
+    "created": "2026-01-01T00:00:00+00:00",
+    "modified": "2026-01-01T00:00:00+00:00",
+    "page_count": null,
+    "word_count": 19,
+    "extra": {
+      "docx:revision": "1"
+    }
+  },
+  "content": {
+    "text": "Introduction\n\nIntro paragraph under the H1 heading.\n\nMethods\n\nFirst methods paragraph.\n\nSecond methods paragraph.\n\nResults\n\nResults discussion goes here.",
+    "pages": null,
+    "sections": [
+      { "heading": "Introduction", "level": 1, "text": "Intro paragraph under the H1 heading." },
+      { "heading": "Methods",      "level": 2, "text": "First methods paragraph.\n\nSecond methods paragraph." },
+      { "heading": "Results",      "level": 2, "text": "Results discussion goes here." }
+    ]
+  },
+  "warnings": [],
+  "extractor": {
+    "name": "knovas-extract-python",
+    "version": "0.1.0.dev0"
+  }
+}

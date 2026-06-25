@@ -95,7 +95,7 @@ def scan_adversarial(existing: dict) -> dict:
                 "sha256": sha256_of(fixture_path),
                 "size": fixture_path.stat().st_size,
             }
-            for k in ("expected", "provenance", "cve", "tags"):
+            for k in ("expected", "provenance", "cve", "tags", "notes"):
                 if k in prior:
                     entry[k] = prior[k]
             # If the user has not yet declared `expected`, leave a TODO marker

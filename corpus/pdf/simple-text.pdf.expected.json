@@ -1,0 +1,37 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "application/pdf",
+    "sha256": "996f158075bf04cd57c25c7451b224c38c5c71c789f33a4fc1bae2a337a4ebbd",
+    "size_bytes": 1085,
+    "filename": "simple-text.pdf"
+  },
+  "metadata": {
+    "title": "Simple Text PDF",
+    "author": "Knovas Synthesizer",
+    "language": null,
+    "created": "2026-01-01T00:00:00+00:00",
+    "modified": "2026-01-01T00:00:00+00:00",
+    "page_count": 1,
+    "word_count": 8,
+    "extra": {
+      "pdf:producer": "PyMuPDF",
+      "pdf:creator": "knovas-extract synthetic-fixtures generator",
+      "pdf:subject": "Golden fixture for text/plain-PDF extraction",
+      "pdf:keywords": "knovas,extract,fixture,golden",
+      "pdf:format": "PDF 1.7"
+    }
+  },
+  "content": {
+    "text": "Hello world.\nSecond line on the same page.",
+    "pages": [
+      { "index": 0, "text": "Hello world.\nSecond line on the same page." }
+    ],
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": {
+    "name": "knovas-extract-python",
+    "version": "0.1.0.dev0"
+  }
+}

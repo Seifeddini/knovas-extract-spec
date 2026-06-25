@@ -1,32 +1,51 @@
-# Knovas extraction spec — corpus manifest.
-#
-# Bumped together with schema.json. Every fixture under ./corpus/ must have an
-# entry here with its SHA-256; `tooling/validate_corpus.py` enforces this on
-# every PR. Use `tooling/hash_fixtures.py` to regenerate the `fixtures` map
-# after adding/removing/replacing a fixture.
-
-spec_version: "1.0.0"
-corpus_version: "0.0.0"
-last_updated: "2026-06-25"
-
+spec_version: 1.0.0
+corpus_version: 2026.06.25
+last_updated: '2026-06-25'
 tolerances:
-  # Maximum Levenshtein distance (% of golden text length) when comparing
-  # extracted text vs the golden output. Allows for harmless extractor drift
-  # (whitespace normalization, hyphenation, ligature substitution).
   text_levenshtein_pct: 0.5
-
-  # Permitted absolute error in seconds when comparing metadata timestamps.
   metadata_date_seconds: 1
-
-  # Permitted absolute error in pixels for page coordinates (reserved; not
-  # exposed by v1 schema, used by future page-coords feature).
   page_coords_px: 1
-
-# Sentinel: each fixture path maps to {sha256, size, tags}.
-# Empty in Phase 0; populated as fixtures land in Phase 1.
-fixtures: {}
-
-# Sentinel: each adversarial fixture maps to {sha256, size, expected, cve, provenance}.
-# `expected` is one of: ResourceExhaustedError, CorruptDocumentError,
-# EncryptedDocumentError, UnsupportedFormatError, warning, sanitized.
-adversarial: {}
+fixtures:
+  docx/headings.docx:
+    sha256: 06fee057535c04b70322a5726aa001e355ccfd7906045fdb2a97eb2fc6d1334f
+    size: 36722
+    tags:
+    - headings
+    - sections
+    - metadata
+  docx/simple.docx:
+    sha256: d433c5eec5febb9b9017c25cc98f32a1fa08e199899376f575a6c3e07d729ca4
+    size: 36693
+    tags:
+    - simple
+    - paragraphs
+    - metadata
+  pdf/multi-page.pdf:
+    sha256: 3611cf5e1bf2bbf3f623505ae7ed874450493c028711a86064c208342dfe8c8c
+    size: 1549
+    tags:
+    - multi-page
+    - per-page-text
+  pdf/simple-text.pdf:
+    sha256: 996f158075bf04cd57c25c7451b224c38c5c71c789f33a4fc1bae2a337a4ebbd
+    size: 1085
+    tags:
+    - text-only
+    - single-page
+    - metadata
+adversarial:
+  docx/decompression-bomb.docx:
+    sha256: dc023ed151fb4eb0d17143f082e2fcbc7efaa9d99f5273360a12dd68c770afa1
+    size: 5631
+    expected: ResourceExhaustedError
+    provenance: synthesized — 5 MiB of one byte inside a minimal docx zip
+  docx/zip-slip.docx:
+    sha256: c7e2909dc14725ced673641915323ebee97f99c408174131ca6132188383d898
+    size: 382
+    expected: CorruptDocumentError
+    provenance: synthesized — minimal docx zip with a '../../../etc/passwd-fake' entry
+  pdf/encrypted.pdf:
+    sha256: 39b6b524954ef9bbb104fd0ccc56d347211bd3cc771106a2f82664cadf278f90
+    size: 1353
+    expected: EncryptedDocumentError
+    provenance: synthesized — AES-256 encrypted, owner+user passwords set

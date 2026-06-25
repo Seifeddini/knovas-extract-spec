@@ -1,0 +1,35 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "application/pdf",
+    "sha256": "3611cf5e1bf2bbf3f623505ae7ed874450493c028711a86064c208342dfe8c8c",
+    "size_bytes": 1549,
+    "filename": "multi-page.pdf"
+  },
+  "metadata": {
+    "title": "Multi-Page PDF",
+    "author": "Knovas Synthesizer",
+    "language": null,
+    "created": "2026-01-01T00:00:00+00:00",
+    "modified": "2026-01-01T00:00:00+00:00",
+    "page_count": 3,
+    "word_count": 15,
+    "extra": {
+      "pdf:format": "PDF 1.7"
+    }
+  },
+  "content": {
+    "text": "Page 1\nFirst page text.\n\nPage 2\nSecond page text.\n\nPage 3\nThird page text.",
+    "pages": [
+      { "index": 0, "text": "Page 1\nFirst page text." },
+      { "index": 1, "text": "Page 2\nSecond page text." },
+      { "index": 2, "text": "Page 3\nThird page text." }
+    ],
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": {
+    "name": "knovas-extract-python",
+    "version": "0.1.0.dev0"
+  }
+}

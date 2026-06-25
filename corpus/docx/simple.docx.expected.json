@@ -1,0 +1,33 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "sha256": "d433c5eec5febb9b9017c25cc98f32a1fa08e199899376f575a6c3e07d729ca4",
+    "size_bytes": 36693,
+    "filename": "simple.docx"
+  },
+  "metadata": {
+    "title": "Simple DOCX",
+    "author": "Knovas Synthesizer",
+    "language": null,
+    "created": "2026-01-01T00:00:00+00:00",
+    "modified": "2026-01-01T00:00:00+00:00",
+    "page_count": null,
+    "word_count": 13,
+    "extra": {
+      "docx:subject": "Golden fixture for DOCX extraction",
+      "docx:keywords": "knovas,extract,fixture,golden",
+      "docx:revision": "1"
+    }
+  },
+  "content": {
+    "text": "First paragraph of the simple document.\n\nSecond paragraph with a bit more content.",
+    "pages": null,
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": {
+    "name": "knovas-extract-python",
+    "version": "0.1.0.dev0"
+  }
+}
