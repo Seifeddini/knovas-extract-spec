@@ -1,0 +1,32 @@
+# Knovas extraction spec — corpus manifest.
+#
+# Bumped together with schema.json. Every fixture under ./corpus/ must have an
+# entry here with its SHA-256; `tooling/validate_corpus.py` enforces this on
+# every PR. Use `tooling/hash_fixtures.py` to regenerate the `fixtures` map
+# after adding/removing/replacing a fixture.
+
+spec_version: "1.0.0"
+corpus_version: "0.0.0"
+last_updated: "2026-06-25"
+
+tolerances:
+  # Maximum Levenshtein distance (% of golden text length) when comparing
+  # extracted text vs the golden output. Allows for harmless extractor drift
+  # (whitespace normalization, hyphenation, ligature substitution).
+  text_levenshtein_pct: 0.5
+
+  # Permitted absolute error in seconds when comparing metadata timestamps.
+  metadata_date_seconds: 1
+
+  # Permitted absolute error in pixels for page coordinates (reserved; not
+  # exposed by v1 schema, used by future page-coords feature).
+  page_coords_px: 1
+
+# Sentinel: each fixture path maps to {sha256, size, tags}.
+# Empty in Phase 0; populated as fixtures land in Phase 1.
+fixtures: {}
+
+# Sentinel: each adversarial fixture maps to {sha256, size, expected, cve, provenance}.
+# `expected` is one of: ResourceExhaustedError, CorruptDocumentError,
+# EncryptedDocumentError, UnsupportedFormatError, warning, sanitized.
+adversarial: {}

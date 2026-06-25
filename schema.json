@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knovas.ch/schemas/extraction/v1/extraction-result.json",
+  "title": "ExtractionResult",
+  "description": "Output of a knovas-extract-<lang> implementation for one input document. Every language implementation MUST produce JSON conforming to this schema (cross-validated by golden-corpus tests).",
+  "type": "object",
+  "required": ["spec_version", "source", "metadata", "content", "warnings", "extractor"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "description": "Semantic version of the ExtractionResult contract this output conforms to.",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "source": {
+      "type": "object",
+      "description": "Provenance of the input document. Computed by the extractor, not parsed from the file.",
+      "required": ["mime_type", "sha256", "size_bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "mime_type": {
+          "type": "string",
+          "description": "IANA media type detected by header/magic-bytes inspection (NOT by file extension).",
+          "minLength": 3
+        },
+        "sha256": {
+          "type": "string",
+          "description": "SHA-256 of the raw input bytes, lowercase hex.",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "description": "Size of the raw input in bytes.",
+          "minimum": 0
+        },
+        "filename": {
+          "type": ["string", "null"],
+          "description": "Original filename if available. Never used for MIME detection."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Document-level metadata. All fields nullable; absence means 'unknown', not 'empty'. Field names align with Apache Tika / Dublin Core where applicable.",
+      "required": ["extra"],
+      "additionalProperties": false,
+      "properties": {
+        "title":      { "type": ["string", "null"] },
+        "author":     { "type": ["string", "null"] },
+        "language":   {
+          "type": ["string", "null"],
+          "description": "BCP-47 language tag if detected (e.g. 'de', 'en-US'). Null if not detectable."
+        },
+        "created":    {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp; tolerance ±1 s for cross-language comparison.",
+          "format": "date-time"
+        },
+        "modified":   {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "page_count": { "type": ["integer", "null"], "minimum": 0 },
+        "word_count": { "type": ["integer", "null"], "minimum": 0 },
+        "extra": {
+          "type": "object",
+          "description": "Format-specific metadata. Keys must be namespaced (e.g. 'pdf:producer', 'docx:revision'). Languages may omit unsupported keys but MUST NOT invent unknown ones.",
+          "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "description": "Extracted text. `text` is always present; `pages` and `sections` are present only when the format supports them.",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Full extracted text. NFC-normalized, LF newlines, trailing whitespace stripped per line, max one blank line between paragraphs. See docs/tolerances.md."
+        },
+        "pages": {
+          "type": ["array", "null"],
+          "description": "Per-page text (PDF, paginated DOCX). Null when format is not paginated.",
+          "items": {
+            "type": "object",
+            "required": ["index", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "text":  { "type": "string" }
+            }
+          }
+        },
+        "sections": {
+          "type": ["array", "null"],
+          "description": "Heading-derived sections (DOCX, MD, HTML). Null when no headings are present or format is unstructured.",
+          "items": {
+            "type": "object",
+            "required": ["heading", "level", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "heading": { "type": "string" },
+              "level":   { "type": "integer", "minimum": 1, "maximum": 6 },
+              "text":    { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Non-fatal issues encountered during extraction (e.g. 'page 7 had an unrecognized font', 'macros stripped'). Empty array when none.",
+      "items": { "type": "string" }
+    },
+    "extractor": {
+      "type": "object",
+      "description": "Identifies the implementation that produced this result. Used by `diff_extraction.py` to attribute regressions.",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Implementation name, e.g. 'knovas-extract-python', 'knovas-extract-node'."
+        },
+        "version": {
+          "type": "string",
+          "description": "Implementation version (SemVer)."
+        }
+      }
+    }
+  }
+}
