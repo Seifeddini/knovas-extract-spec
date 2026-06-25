@@ -1,0 +1,28 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "text/html",
+    "sha256": "fe9e1c1b5300ec276e6184e81e3fe9e80fbe5b8005ec17587ccaef88d3d499a6",
+    "size_bytes": 268,
+    "filename": "js-heavy.html"
+  },
+  "metadata": {
+    "title": "JS Heavy",
+    "author": null,
+    "language": null,
+    "created": null,
+    "modified": null,
+    "page_count": null,
+    "word_count": 5,
+    "extra": {
+      "html:charset_detected": "utf-8"
+    }
+  },
+  "content": {
+    "text": "Visible paragraph.\n\nAnother visible paragraph.",
+    "pages": null,
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": { "name": "knovas-extract-python", "version": "0.1.0.dev0" }
+}

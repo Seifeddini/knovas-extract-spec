@@ -1,0 +1,31 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "message/rfc822",
+    "sha256": "e5bc01f0e62f97caa7079ab01f64731c058188efe0d5f65fd249e24f372a37b0",
+    "size_bytes": 260,
+    "filename": "simple.eml"
+  },
+  "metadata": {
+    "title": "Test message",
+    "author": "alice@example.com",
+    "language": null,
+    "created": "2026-01-01T00:00:00+00:00",
+    "modified": null,
+    "page_count": null,
+    "word_count": 12,
+    "extra": {
+      "eml:from": "alice@example.com",
+      "eml:to": "bob@example.com",
+      "eml:message_id": "<test-fixture@example.com>",
+      "eml:body_source": "text/plain"
+    }
+  },
+  "content": {
+    "text": "Hello Bob,\n\nThis is the body of the test message.\n\n--\nAlice",
+    "pages": null,
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": { "name": "knovas-extract-python", "version": "0.1.0.dev0" }
+}

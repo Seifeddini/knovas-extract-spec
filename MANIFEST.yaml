@@ -1,51 +1,105 @@
+# Knovas extraction spec — corpus manifest.
+#
+# Bumped together with schema.json. Every fixture under ./corpus/ must have an
+# entry here with its SHA-256; `tooling/validate_corpus.py` enforces this on
+# every PR. Use `tooling/hash_fixtures.py` to regenerate the `fixtures` map
+# after adding/removing/replacing a fixture (and update the per-entry tags /
+# adversarial `expected`/`provenance` fields by hand).
+
 spec_version: 1.0.0
 corpus_version: 2026.06.25
 last_updated: '2026-06-25'
+
 tolerances:
   text_levenshtein_pct: 0.5
   metadata_date_seconds: 1
   page_coords_px: 1
+
 fixtures:
   docx/headings.docx:
     sha256: 06fee057535c04b70322a5726aa001e355ccfd7906045fdb2a97eb2fc6d1334f
     size: 36722
-    tags:
-    - headings
-    - sections
-    - metadata
+    tags: [headings, sections, metadata]
   docx/simple.docx:
     sha256: d433c5eec5febb9b9017c25cc98f32a1fa08e199899376f575a6c3e07d729ca4
     size: 36693
-    tags:
-    - simple
-    - paragraphs
-    - metadata
+    tags: [simple, paragraphs, metadata]
+  eml/multipart-alternative.eml:
+    sha256: fbe186b75fa8fa4c582b843d6897afffbf3b497ab94b26b36b564de7461d8d41
+    size: 477
+    tags: [multipart-alternative, plain-preferred-over-html]
+  eml/simple.eml:
+    sha256: e5bc01f0e62f97caa7079ab01f64731c058188efe0d5f65fd249e24f372a37b0
+    size: 260
+    tags: [singlepart, plain, metadata]
+  html/js-heavy.html:
+    sha256: fe9e1c1b5300ec276e6184e81e3fe9e80fbe5b8005ec17587ccaef88d3d499a6
+    size: 268
+    tags: [scripts-stripped, no-execution]
+  html/simple.html:
+    sha256: 6862b9a19b8ddcb47b51991c63862dfb4900421ded634d2a460f62a628d3e8a1
+    size: 388
+    tags: [headings, sections, meta-tags]
   pdf/multi-page.pdf:
     sha256: 3611cf5e1bf2bbf3f623505ae7ed874450493c028711a86064c208342dfe8c8c
     size: 1549
-    tags:
-    - multi-page
-    - per-page-text
+    tags: [multi-page, per-page-text]
   pdf/simple-text.pdf:
     sha256: 996f158075bf04cd57c25c7451b224c38c5c71c789f33a4fc1bae2a337a4ebbd
     size: 1085
-    tags:
-    - text-only
-    - single-page
-    - metadata
+    tags: [text-only, single-page, metadata]
+  rtf/simple.rtf:
+    sha256: 4d725b8e1153b59573812df215a27c0d71ea340615d76120ccf30fae509b139a
+    size: 145
+    tags: [text-only, formatting-stripped]
+
 adversarial:
   docx/decompression-bomb.docx:
     sha256: dc023ed151fb4eb0d17143f082e2fcbc7efaa9d99f5273360a12dd68c770afa1
     size: 5631
     expected: ResourceExhaustedError
     provenance: synthesized — 5 MiB of one byte inside a minimal docx zip
+    notes: |
+      Expands ~5000:1; trips the default Limits.max_decompression_ratio=100
+      cap inside DocxExtractor._guard_zip BEFORE any XML parser sees the
+      payload. If this ever stops raising, the ratio guard is broken.
   docx/zip-slip.docx:
     sha256: c7e2909dc14725ced673641915323ebee97f99c408174131ca6132188383d898
     size: 382
     expected: CorruptDocumentError
     provenance: synthesized — minimal docx zip with a '../../../etc/passwd-fake' entry
+    notes: |
+      Tests the zip-slip path-traversal guard in DocxExtractor._guard_zip.
+      Even though we never extract to disk, refusing these names defends
+      downstream consumers that might.
+  html/billion-laughs.html:
+    sha256: 815da3bcdadc7d33ce8d81854d65667cd8f24893667bc28336aa1c05606e95da
+    size: 334
+    expected: sanitized
+    provenance: synthesized — classic XML billion-laughs payload wrapped in HTML
+    notes: |
+      selectolax (lexbor backend) is an HTML5 parser, not XML. It ignores
+      `<!ENTITY>` declarations entirely; the payload's entity references
+      remain as literal `&lol4;` text. If we ever swap to an XML-strict
+      parser, this fixture will start either expanding the payload (FAIL)
+      or raising — both detectable by the golden runner.
   pdf/encrypted.pdf:
     sha256: 39b6b524954ef9bbb104fd0ccc56d347211bd3cc771106a2f82664cadf278f90
     size: 1353
     expected: EncryptedDocumentError
     provenance: synthesized — AES-256 encrypted, owner+user passwords set
+    notes: |
+      Verifies the extractor refuses to silently bypass encryption with a
+      blank password. Some downstream APIs auto-try '' — knovas-extract
+      MUST NOT.
+  rtf/object-linking.rtf:
+    sha256: 47b9929fbcf09537bd123faab22d1e6acb90f231427517e0e8716933d17da830
+    size: 191
+    expected: warning
+    provenance: synthesized — RTF with \object\objemb\objclass Excel.Sheet (CVE-2017-0199-class)
+    notes: |
+      striprtf has no OLE loader; the payload bytes are silently dropped.
+      Our extractor emits a 'RTF contains OLE object-linking control words'
+      warning so callers can audit hostile inputs. If the warning ever
+      stops firing we've lost the audit signal even though no execution
+      occurred.

@@ -1,0 +1,35 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "text/html",
+    "sha256": "6862b9a19b8ddcb47b51991c63862dfb4900421ded634d2a460f62a628d3e8a1",
+    "size_bytes": 388,
+    "filename": "simple.html"
+  },
+  "metadata": {
+    "title": "Simple HTML",
+    "author": null,
+    "language": "en",
+    "created": null,
+    "modified": null,
+    "page_count": null,
+    "word_count": 16,
+    "extra": {
+      "html:description": "Knovas extract golden HTML fixture",
+      "html:keywords": "knovas,extract,fixture,golden",
+      "html:charset_declared": "utf-8",
+      "html:charset_detected": "utf-8"
+    }
+  },
+  "content": {
+    "text": "Welcome\n\nThis is the intro paragraph.\n\nSection A\n\nContent of A.\n\nSection B\n\nContent of B.",
+    "pages": null,
+    "sections": [
+      { "heading": "Welcome",   "level": 1, "text": "This is the intro paragraph.\n\nSection A\n\nContent of A.\n\nSection B\n\nContent of B." },
+      { "heading": "Section A", "level": 2, "text": "Content of A." },
+      { "heading": "Section B", "level": 2, "text": "Content of B." }
+    ]
+  },
+  "warnings": [],
+  "extractor": { "name": "knovas-extract-python", "version": "0.1.0.dev0" }
+}

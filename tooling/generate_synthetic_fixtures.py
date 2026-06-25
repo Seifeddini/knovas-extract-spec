@@ -241,6 +241,133 @@ def make_zip_slip_docx(out: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# HTML, RTF, EML fixtures (Phase 4)
+# ---------------------------------------------------------------------------
+
+
+def make_simple_html(out: Path) -> None:
+    """HTML with title, meta description/keywords, two-level headings."""
+    html = (
+        '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+        '<meta charset="utf-8">\n<title>Simple HTML</title>\n'
+        '<meta name="description" content="Knovas extract golden HTML fixture">\n'
+        '<meta name="keywords" content="knovas,extract,fixture,golden">\n'
+        "</head>\n<body>\n"
+        "<h1>Welcome</h1>\n<p>This is the intro paragraph.</p>\n"
+        "<h2>Section A</h2>\n<p>Content of A.</p>\n"
+        "<h2>Section B</h2>\n<p>Content of B.</p>\n"
+        "</body>\n</html>\n"
+    )
+    out.write_bytes(html.encode("utf-8"))
+
+
+def make_js_heavy_html(out: Path) -> None:
+    """HTML where most of the body is in a <script> — extractor must drop it."""
+    html = (
+        '<!DOCTYPE html>\n<html>\n<head><title>JS Heavy</title></head>\n<body>\n'
+        "<p>Visible paragraph.</p>\n"
+        '<script type="text/javascript">\n'
+        'var secrets = "ABCDEFG"; alert("never runs"); '
+        'document.write("never runs either");\n'
+        "</script>\n"
+        "<p>Another visible paragraph.</p>\n"
+        "</body>\n</html>\n"
+    )
+    out.write_bytes(html.encode("utf-8"))
+
+
+def make_billion_laughs_html(out: Path) -> None:
+    """XML-style entity expansion. selectolax doesn't expand entities, so this
+    is structurally safe — but we record it as an adversarial fixture so any
+    future migration to an XML-strict parser is caught immediately."""
+    html = (
+        '<?xml version="1.0"?>\n'
+        "<!DOCTYPE lolz [\n"
+        '  <!ENTITY lol "lol">\n'
+        '  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">\n'
+        '  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">\n'
+        '  <!ENTITY lol4 "&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;">\n'
+        "]>\n"
+        "<html><body><p>&lol4;</p></body></html>\n"
+    )
+    out.write_bytes(html.encode("utf-8"))
+
+
+def make_simple_rtf(out: Path) -> None:
+    """Minimal valid RTF with formatted text."""
+    rtf = (
+        r"{\rtf1\ansi\deff0 "
+        r"{\fonttbl {\f0 Times New Roman;}} "
+        r"\f0\fs24 Hello \b bold\b0\fs24  RTF world.\par "
+        r"Second paragraph with \i italic\i0  text.\par"
+        "}"
+    )
+    out.write_bytes(rtf.encode("ascii"))
+
+
+def make_object_linking_rtf(out: Path) -> None:
+    """RTF with \\object control words (CVE-2017-0199-class regression).
+
+    striprtf has no object loader; the payload bytes are dropped silently.
+    Our extractor emits an 'OLE object-linking' warning so callers can audit.
+    """
+    rtf = (
+        r"{\rtf1\ansi\deff0 "
+        r"{\object\objemb\objclass{Excel.Sheet}\objw1\objh1 "
+        r"{\*\objdata 010500000200000007000000} "
+        r"{\result {\rtlch payload-text-here}} } "
+        r"\par body text that should still extract.\par"
+        "}"
+    )
+    out.write_bytes(rtf.encode("ascii"))
+
+
+def make_simple_eml(out: Path) -> None:
+    """Plain-text RFC 5322 email."""
+    eml = (
+        b"From: alice@example.com\r\n"
+        b"To: bob@example.com\r\n"
+        b"Subject: Test message\r\n"
+        b"Date: Thu, 01 Jan 2026 00:00:00 +0000\r\n"
+        b"Message-ID: <test-fixture@example.com>\r\n"
+        b'Content-Type: text/plain; charset="utf-8"\r\n'
+        b"\r\n"
+        b"Hello Bob,\r\n\r\n"
+        b"This is the body of the test message.\r\n\r\n"
+        b"-- \r\n"
+        b"Alice\r\n"
+    )
+    out.write_bytes(eml)
+
+
+def make_multipart_eml(out: Path) -> None:
+    """multipart/alternative with text/plain + text/html — extractor must prefer text/plain."""
+    boundary = "knovas-test-boundary"
+    eml = (
+        f"From: alice@example.com\r\n"
+        f"To: bob@example.com\r\n"
+        f"Subject: Multipart test\r\n"
+        f"Date: Thu, 01 Jan 2026 00:00:00 +0000\r\n"
+        f"MIME-Version: 1.0\r\n"
+        f'Content-Type: multipart/alternative; boundary="{boundary}"\r\n'
+        f"\r\n"
+        f"--{boundary}\r\n"
+        f'Content-Type: text/plain; charset="utf-8"\r\n\r\n'
+        f"Plain version preferred by the extractor.\r\n\r\n"
+        f"--{boundary}\r\n"
+        f'Content-Type: text/html; charset="utf-8"\r\n\r\n'
+        f"<html><body><p>HTML version should be ignored.</p></body></html>\r\n\r\n"
+        f"--{boundary}--\r\n"
+    ).encode("utf-8")
+    out.write_bytes(eml)
+
+
+# ---------------------------------------------------------------------------
+# Driver
+# ---------------------------------------------------------------------------
+
+
 def regenerate(formats: set[str]) -> None:
     if "pdf" in formats:
         (CORPUS_DIR / "pdf").mkdir(exist_ok=True)
@@ -264,17 +391,42 @@ def regenerate(formats: set[str]) -> None:
             "adversarial/zip-slip.docx"
         )
 
+    if "html" in formats:
+        (CORPUS_DIR / "html").mkdir(exist_ok=True)
+        (ADVERSARIAL_DIR / "html").mkdir(exist_ok=True)
+        make_simple_html(CORPUS_DIR / "html" / "simple.html")
+        make_js_heavy_html(CORPUS_DIR / "html" / "js-heavy.html")
+        make_billion_laughs_html(ADVERSARIAL_DIR / "html" / "billion-laughs.html")
+        print("HTML: simple.html, js-heavy.html, adversarial/billion-laughs.html")
+
+    if "rtf" in formats:
+        (CORPUS_DIR / "rtf").mkdir(exist_ok=True)
+        (ADVERSARIAL_DIR / "rtf").mkdir(exist_ok=True)
+        make_simple_rtf(CORPUS_DIR / "rtf" / "simple.rtf")
+        make_object_linking_rtf(ADVERSARIAL_DIR / "rtf" / "object-linking.rtf")
+        print("RTF: simple.rtf, adversarial/object-linking.rtf")
+
+    if "eml" in formats:
+        (CORPUS_DIR / "eml").mkdir(exist_ok=True)
+        make_simple_eml(CORPUS_DIR / "eml" / "simple.eml")
+        make_multipart_eml(CORPUS_DIR / "eml" / "multipart-alternative.eml")
+        print("EML: simple.eml, multipart-alternative.eml")
+
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--format",
-        choices=("pdf", "docx", "all"),
+        choices=("pdf", "docx", "html", "rtf", "eml", "all"),
         default="all",
         help="Which family to regenerate.",
     )
     args = p.parse_args(argv)
-    formats = {"pdf", "docx"} if args.format == "all" else {args.format}
+    formats = (
+        {"pdf", "docx", "html", "rtf", "eml"}
+        if args.format == "all"
+        else {args.format}
+    )
     try:
         regenerate(formats)
     except ImportError as exc:

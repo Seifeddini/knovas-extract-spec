@@ -1,0 +1,26 @@
+{
+  "spec_version": "1.0.0",
+  "source": {
+    "mime_type": "text/rtf",
+    "sha256": "4d725b8e1153b59573812df215a27c0d71ea340615d76120ccf30fae509b139a",
+    "size_bytes": 145,
+    "filename": "simple.rtf"
+  },
+  "metadata": {
+    "title": null,
+    "author": null,
+    "language": null,
+    "created": null,
+    "modified": null,
+    "page_count": null,
+    "word_count": 9,
+    "extra": {}
+  },
+  "content": {
+    "text": "Hello bold RTF world.\nSecond paragraph with italic text.",
+    "pages": null,
+    "sections": null
+  },
+  "warnings": [],
+  "extractor": { "name": "knovas-extract-python", "version": "0.1.0.dev0" }
+}
