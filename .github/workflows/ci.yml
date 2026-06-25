@@ -31,7 +31,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
+          # No `cache: 'pip'` — this repo has no pyproject/requirements at
+          # the root, so setup-python can't compute a cache key; the action
+          # exits 1 with "Error: No file in /. matched to [**/requirements.txt or
+          # **/pyproject.toml ...]". The two tooling deps are tiny anyway.
 
       - name: Install tooling deps
         run: pip install jsonschema==4.23.0 PyYAML==6.0.2
