@@ -1,23 +1,26 @@
-# Knovas Extraction Spec
+# knovas-extract-spec
 
-Cross-language contract + golden corpus for the `knovas-extract-<lang>` family of client libraries. **This directory is the source of truth.** Every language implementation must produce output that matches the corpus at a pinned spec version.
+[![CI](https://github.com/Seifeddini/knovas-extract-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/Seifeddini/knovas-extract-spec/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+Cross-language contract + golden corpus + adversarial corpus for the `knovas-extract-<lang>` family of client libraries. **This repo is the source of truth.** Every language implementation must produce output matching this corpus at a pinned `spec_version`.
 
 ## Why spec-first?
 
-Clients asked for extraction libraries in many languages (Python first, then Node, Go, Rust, Java, …). Two architectures could deliver that:
+Clients wanted extraction libraries in many languages (Python, then Node, Go, Rust, Java, …). Two architectures could deliver that:
 
-| Architecture | What it costs |
+| Architecture | Cost |
 |---|---|
 | Single core (Rust/Tika) + thin wrappers | Single implementation, but FFI overhead / JVM dependency / weak Rust parser ecosystem |
 | **Per-language native, governed by a shared spec** ← we chose this | Each language uses its best native libs; cross-language consistency enforced by this corpus |
 
-The shared spec means: a `knovas-extract-node` PR is "correct" iff it passes the golden corpus at the pinned `spec_version`. No language can drift silently.
+A `knovas-extract-node` PR is "correct" iff it passes the golden corpus at the pinned `spec_version`. No language can drift silently.
 
 ## Layout
 
 ```
-spec/
-├── schema.json          # JSON Schema for ExtractionResult (the contract)
+.
+├── schema.json          # JSON Schema 2020-12 — the contract
 ├── MANIFEST.yaml        # spec_version, corpus_version, fixture hashes, tolerances
 ├── CHANGELOG.md
 ├── docs/
@@ -26,47 +29,57 @@ spec/
 │   ├── adding-a-format.md
 │   └── adding-a-language.md
 ├── tooling/
-│   ├── validate_corpus.py   # CI: every .expected.json valid + hashed
-│   ├── hash_fixtures.py     # maintainer: regenerate MANIFEST.yaml hashes
-│   └── diff_extraction.py   # contributor: human-readable diff vs golden
+│   ├── validate_corpus.py            # CI gate
+│   ├── hash_fixtures.py              # maintainer: refresh MANIFEST.yaml
+│   ├── diff_extraction.py            # contributor: tolerance-aware diff
+│   └── generate_synthetic_fixtures.py # regenerate deterministic fixtures
 └── corpus/
-    ├── pdf/                 # input + .expected.json per fixture
-    ├── docx/  msg/  eml/  html/  rtf/  txt/  md/
-    ├── torture/             # malformed / pathological inputs (typed-error contract)
-    └── adversarial/         # known-bad inputs (security regression tests)
+    ├── pdf/  docx/  msg/  eml/  html/  rtf/  txt/  md/   # golden
+    ├── torture/                                          # malformed/edge
+    └── adversarial/                                      # known-bad inputs
 ```
 
-## Quickstart
+## Language implementations
 
-**Validate the corpus** (every PR runs this in CI):
+| Language | Repo | Pinned spec | Status |
+|---|---|---|---|
+| Python | [knovas-extract-python](https://github.com/Seifeddini/knovas-extract-python) | 1.0.0 | shipped (0.1.0) |
+| Node | _TBD_ | — | planned |
+| Go | _TBD_ | — | planned |
+| Rust | _TBD_ | — | planned |
+
+## Quickstart (maintainer)
 
 ```bash
-python clients/extraction/spec/tooling/validate_corpus.py
+git clone https://github.com/Seifeddini/knovas-extract-spec.git
+cd knovas-extract-spec
+pip install jsonschema PyYAML pymupdf python-docx
+python tooling/validate_corpus.py
 ```
 
-**Add a new fixture**:
+## Adding a fixture
 
-1. Drop the input file in `corpus/<format>/<name>.<ext>`.
-2. Generate the golden output by running your language implementation against it (e.g. `python -m knovas_extract dump my.pdf > corpus/pdf/my.expected.json`).
-3. Hand-edit the `expected.json` to reflect what the contract *should* return (golden ≠ "whatever the parser produced today" — golden is the truth).
-4. Run `python clients/extraction/spec/tooling/hash_fixtures.py` to refresh `MANIFEST.yaml`.
-5. Run `validate_corpus.py` and open a PR.
+1. Drop the input file in `corpus/<format>/<name>.<ext>` (or use `tooling/generate_synthetic_fixtures.py` for deterministic synthetic ones).
+2. Run your language implementation against it and hand-curate the `<name>.expected.json` (golden ≠ "whatever the parser produced today"; golden is **the truth**).
+3. `python tooling/hash_fixtures.py` to refresh `MANIFEST.yaml`.
+4. `python tooling/validate_corpus.py` must report OK.
+5. Open a PR.
 
-**Add a new format**: see [`docs/adding-a-format.md`](docs/adding-a-format.md).
-
-**Add a new language implementation**: see [`docs/adding-a-language.md`](docs/adding-a-language.md).
+Detailed contributor docs in [`docs/adding-a-format.md`](docs/adding-a-format.md) and [`docs/adding-a-language.md`](docs/adding-a-language.md).
 
 ## Versioning
 
-- **`spec_version`** (major.minor.patch) — bumps when `schema.json` changes. Major bumps are breaking; all language implementations must be updated before they can claim conformance.
-- **`corpus_version`** (calver `YYYY.MM.DD`) — bumps when fixtures change. Non-breaking by definition (a new fixture only adds a new gate).
+- **`spec_version`** — `major.minor.patch`. Bumps when `schema.json` changes. Major bumps are breaking; every language implementation must be updated before it can claim conformance to the new major.
+- **`corpus_version`** — calver `YYYY.MM.DD`. Bumps whenever fixtures change. Non-breaking by definition (a new fixture only adds a new gate).
 
 Language implementations pin both versions in their build config and refuse to publish a release if validation fails.
 
 ## Security note
 
-The `adversarial/` directory contains **deliberately malicious inputs** (decompression bombs, XXE payloads, RTF object-linking PoCs, etc.) used to verify our extractors degrade gracefully. Treat the directory as untrusted; do not open fixtures in a viewer outside a sandbox. Provenance for every PoC is recorded in `adversarial/README.md`.
+The `corpus/adversarial/` directory contains **deliberately malicious inputs** — decompression bombs, XXE payloads, encrypted documents, RTF object-linking PoCs. Treat the directory as untrusted; do not open fixtures in a viewer outside a sandbox. Provenance for every PoC is recorded in `corpus/adversarial/README.md` and `MANIFEST.yaml::adversarial[*].provenance`.
 
-## Plan reference
+To report a parser exploit not covered here, **do not** open a public PR. Email `security@knovas.ch` per the policy in each language repo's `SECURITY.md`.
 
-This scaffold implements **Phase 0** of [`/plans/our-client-asked-if-bright-pony.md`](../../../C:/Users/siran/.claude/plans/our-client-asked-if-bright-pony.md). Phase 1 adds fixtures; Phase 2+ stand up the language implementations in separate repos (`knovas/knovas-extract-python` first).
+## License
+
+Apache-2.0. See [`LICENSE`](LICENSE).

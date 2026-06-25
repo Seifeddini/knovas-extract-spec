@@ -1,0 +1,29 @@
+* text=auto
+
+# Force LF for code + config files (CI runs on Linux).
+*.py        text eol=lf
+*.toml      text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.md        text eol=lf
+LICENSE     text eol=lf
+.gitignore  text eol=lf
+.gitattributes text eol=lf
+
+# Corpus fixtures (golden + adversarial + expected.json) are TREATED AS BINARY
+# so their SHA-256 stays byte-identical across OSes. Without this, .html /
+# .eml / .json files get line-ending-converted on Windows checkout, breaking
+# the hash check in MANIFEST.yaml. The penalty for binary-marking text files
+# is no diff/merge support on them — fine for fixtures we never hand-edit.
+corpus/** -text
+
+# Large binary corpus fixtures go through Git LFS.
+corpus/**/*.pdf  filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.docx filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.doc  filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.xlsx filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.pptx filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.msg  filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.eml  filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.rtf  filter=lfs diff=lfs merge=lfs -text
+corpus/**/*.bin  filter=lfs diff=lfs merge=lfs -text

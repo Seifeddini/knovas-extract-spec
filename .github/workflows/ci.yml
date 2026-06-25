@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-corpus:
+    name: validate_corpus.py
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout (with LFS for corpus binaries)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install tooling deps
+        run: pip install jsonschema==4.23.0 PyYAML==6.0.2
+
+      - name: Validate corpus
+        run: python tooling/validate_corpus.py
+
+      - name: Verify hash_fixtures.py is idempotent
+        run: |
+          python tooling/hash_fixtures.py
+          if ! git diff --quiet MANIFEST.yaml; then
+            echo "::error::MANIFEST.yaml is out of sync with corpus."
+            echo "Run: python tooling/hash_fixtures.py"
+            git --no-pager diff MANIFEST.yaml
+            exit 1
+          fi
