@@ -1,7 +1,7 @@
 {
   "spec_version": "1.0.0",
   "source": {
-    "mime_type": "text/rtf",
+    "mime_type": "application/rtf",
     "sha256": "4d725b8e1153b59573812df215a27c0d71ea340615d76120ccf30fae509b139a",
     "size_bytes": 145,
     "filename": "simple.rtf"
